@@ -11,6 +11,8 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth.models import User
+# from django.template import Template, RequestContext
+from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import csrf_exempt
@@ -22,7 +24,8 @@ from certificates.api import (
     get_certificate_url,
     generate_user_certificates,
     emit_certificate_event,
-    has_html_certificates_enabled
+    has_html_certificates_enabled,
+    get_certificate_template
 )
 from certificates.models import (
     certificate_status_for_student,
@@ -34,6 +37,7 @@ from certificates.models import (
     BadgeAssertion
 )
 from edxmako.shortcuts import render_to_response
+from edxmako.template import Template
 from util.views import ensure_valid_course_key
 from xmodule.modulestore.django import modulestore
 from opaque_keys import InvalidKeyError
@@ -618,6 +622,13 @@ def render_html_view(request, user_id, course_id):
     context.update(course.cert_html_view_overrides)
 
     # FINALLY, generate and send the output the client
+    if settings.FEATURES.get('CUSTOM_CERTIFICATE_TEMPLATES_ENABLED', False):
+        custom_template = get_certificate_template(course_key, user_certificate.mode)
+        if custom_template:
+            template = Template(custom_template)
+            context = RequestContext(request, context)
+            return HttpResponse(template.render(context))
+
     return render_to_response("certificates/valid.html", context)
 
 
