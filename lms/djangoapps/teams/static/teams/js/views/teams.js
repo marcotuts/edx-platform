@@ -4,8 +4,9 @@
         'backbone',
         'teams/js/views/team_card',
         'common/js/components/views/paginated_view',
-        'teams/js/views/team_actions'
-    ], function (Backbone, TeamCardView, PaginatedView, TeamActionsView) {
+        'teams/js/views/team_actions',
+        'teams/js/views/team_utils'
+    ], function (Backbone, TeamCardView, PaginatedView, TeamActionsView, TeamUtils) {
         var TeamsView = PaginatedView.extend({
             type: 'teams',
 
@@ -15,8 +16,8 @@
                     router: options.router,
                     topic: options.topic,
                     maxTeamSize: options.maxTeamSize,
-                    countries: this.selectorOptionsArrayToHashWithBlank(options.teamParams.countries),
-                    languages: this.selectorOptionsArrayToHashWithBlank(options.teamParams.languages),
+                    countries: TeamUtils.selectorOptionsArrayToHashWithBlank(options.teamParams.countries),
+                    languages: TeamUtils.selectorOptionsArrayToHashWithBlank(options.teamParams.languages)
                 });
                 PaginatedView.prototype.initialize.call(this);
                 this.teamParams = options.teamParams;
@@ -35,20 +36,6 @@
                 }
 
                 return this;
-            },
-
-            /**
-             * Convert a 2d array to an object equivalent with an additional blank element
-             *
-             * @param {Array.<Array.<string>>} Two dimensional options array
-             * @returns {Object} Hash version of the input array
-             * @example selectorOptionsArrayToHashWithBlank([["a", "alpha"],["b","beta"]])
-             * // returns {"a":"alpha", "b":"beta", "":""}
-             */
-            selectorOptionsArrayToHashWithBlank: function (options) {
-                var map = _.object(options);
-                map[""] = "";
-                return map;
             }
         });
         return TeamsView;

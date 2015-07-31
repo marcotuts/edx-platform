@@ -116,6 +116,7 @@ class TeamsDashboardView(View):
             "username": user.username,
             "privileged": has_discussion_privileges(user, course_key),
             "disable_courseware_js": True,
+            "teams_base_url": reverse('teams_dashboard', request=request, kwargs={'course_id': course_id}),
         }
         return render_to_response("teams/teams.html", context)
 

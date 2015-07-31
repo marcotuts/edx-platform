@@ -106,7 +106,7 @@ define([
             it('displays and focuses an error message when trying to navigate to a nonexistent team', function () {
                 var requests = AjaxHelpers.requests(this);
                 teamsTabView.router.navigate('teams/test_topic/no_such_team', {trigger: true});
-                AjaxHelpers.expectRequest(requests, 'GET', 'api/teams/no_such_team', null);
+                AjaxHelpers.expectRequest(requests, 'GET', 'api/teams/no_such_team?expand=user', null);
                 AjaxHelpers.respondWithError(requests, 404);
                 expectError('The team "no_such_team" could not be found.');
                 expectFocus(teamsTabView.$('.warning'));

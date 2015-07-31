@@ -403,3 +403,22 @@
       margin-bottom: none;
     }
   }
+
+  .btn-link {
+    border-color: transparent;
+    border-radius: 0;
+    background: 0 0;
+    font-size: inherit;
+    padding: 0;
+    color: $link-color;
+
+    &:hover,
+    &:focus {
+      background: 0 0 !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      border-color: transparent;
+      background-image: none;
+      border-bottom-color: $link-color;
+    }
+  }
