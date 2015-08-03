@@ -111,7 +111,14 @@
                                 url: 'my-teams',
                                 view: this.myTeamsView
                             }, {
-                                title: gettext('Browse'),
+                                // Translators: This will be shown
+                                // to users as "Browse teams" if
+                                // they are using a screenreader,
+                                // and "Browse" otherwise.
+                                title: _.escape(gettext('Browse')) +
+                                    '<span class="sr"> ' +
+                                    gettext('teams') +
+                                    '</span>',
                                 url: 'browse',
                                 view: this.topicsView
                             }],
