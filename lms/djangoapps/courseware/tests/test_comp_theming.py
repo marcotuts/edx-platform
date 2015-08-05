@@ -1,9 +1,12 @@
 """Tests of comprehensive theming."""
 
+import os.path
+
 from django.conf import settings
 from django.test import TestCase
 
-from path import path
+from path import path           # pylint: disable=no-name-in-module
+import staticfiles
 
 from openedx.core.djangoapps.theming.test_util import with_comp_theme
 from openedx.core.lib.tempdir import mkdtemp_clean
@@ -11,6 +14,12 @@ from openedx.core.lib.tempdir import mkdtemp_clean
 
 class TestComprehensiveTheming(TestCase):
     """Test comprehensive theming."""
+
+    def setUp(self):
+        super(TestComprehensiveTheming, self).setUp()
+
+        # Clear the internal staticfiles caches, to get test isolation.
+        staticfiles.finders._finders.clear()                    # pylint: disable=protected-access
 
     @with_comp_theme(settings.REPO_ROOT / 'themes/red-theme')
     def test_red_footer(self):
@@ -35,8 +44,32 @@ class TestComprehensiveTheming(TestCase):
 
         @with_comp_theme(tmp_theme)
         def do_the_test(self):
+            """A function to do the work so we can use the decorator."""
             resp = self.client.get('/')
             self.assertEqual(resp.status_code, 200)
             self.assertContains(resp, "TEMPORARY THEME")
 
         do_the_test(self)
+
+    def test_default_logo_image(self):
+        result = staticfiles.finders.find('images/logo.png')
+        self.assertEqual(result, settings.REPO_ROOT / 'lms/static/images/logo.png')
+
+    @with_comp_theme(settings.REPO_ROOT / 'themes/red-theme')
+    def test_overridden_logo_image(self):
+        result = staticfiles.finders.find('images/logo.png')
+        self.assertEqual(result, settings.REPO_ROOT / 'themes/red-theme/lms/static/images/logo.png')
+
+    def test_default_css(self):
+        # Where we find css/lms-main.css depends on whether lms/static/css
+        # exists, which depends on what commands have run before.  Get the
+        # possibilities, and check that 1) the STATIC_ROOT file is in the list,
+        # and 2) that no red-theme file is in the list.
+        css_files = staticfiles.finders.find('css/lms-main.css', all=True)
+        self.assertIn(os.path.abspath(settings.STATIC_ROOT / 'css/lms-main.css'), css_files)
+        self.assertFalse(any('red-theme' in css_file for css_file in css_files))
+
+    @with_comp_theme(settings.REPO_ROOT / 'themes/red-theme')
+    def test_overridden_css(self):
+        css_file = staticfiles.finders.find('css/lms-main.css')
+        self.assertEqual(css_file, settings.REPO_ROOT / 'themes/red-theme/lms/static/css/lms-main.css')
