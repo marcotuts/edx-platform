@@ -79,10 +79,12 @@ cms/static/css/
 lms/static/sass/*.css
 lms/static/sass/*.css.map
 lms/static/certificates/sass/*.css
+lms/static/themed_sass/
 cms/static/css/
 cms/static/sass/*.css
 cms/static/sass/*.css.map
-themes/**/sass/*.css
+cms/static/themed_sass/
+themes/**/css/*.css
 
 ### Logging artifacts
 log/
