@@ -22,12 +22,14 @@ from ..helpers import intercept_errors
 from ..models import UserPreference
 
 from . import (
-    ACCOUNT_VISIBILITY_PREF_KEY, ALL_USERS_VISIBILITY, PRIVATE_VISIBILITY,
+    ACCOUNT_VISIBILITY_PREF_KEY, PRIVATE_VISIBILITY,
     EMAIL_MIN_LENGTH, EMAIL_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH,
     USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH
 )
-from .serializers import AccountLegacyProfileSerializer, AccountUserSerializer
-
+from .serializers import (
+    AccountLegacyProfileSerializer, AccountUserSerializer,
+    AccountFullUserProfileReadOnlySerializer
+)
 
 @intercept_errors(UserAPIInternalError, ignore_errors=[UserAPIRequestError])
 def get_account_settings(requesting_user, username=None, configuration=None, view=None):
@@ -61,34 +63,19 @@ def get_account_settings(requesting_user, username=None, configuration=None, vie
     if username is None:
         username = requesting_user.username
 
+    try:
+        existing_user = User.objects.get(username=username)
+    except ObjectDoesNotExist:
+        raise UserNotFound()
+
     has_full_access = requesting_user.username == username or requesting_user.is_staff
-    return_all_fields = has_full_access and view != 'shared'
+    admin_fields = has_full_access and view != 'shared'
 
-    existing_user, existing_user_profile = _get_user_and_profile(username)
-
-    user_serializer = AccountUserSerializer(existing_user)
-    legacy_profile_serializer = AccountLegacyProfileSerializer(existing_user_profile)
-
-    account_settings = dict(user_serializer.data, **legacy_profile_serializer.data)
-
-    if return_all_fields:
-        return account_settings
-
-    if not configuration:
-        configuration = settings.ACCOUNT_VISIBILITY_CONFIGURATION
-
-    visible_settings = {}
-
-    profile_visibility = _get_profile_visibility(existing_user_profile, configuration)
-    if profile_visibility == ALL_USERS_VISIBILITY:
-        field_names = configuration.get('shareable_fields')
-    else:
-        field_names = configuration.get('public_fields')
-
-    for field_name in field_names:
-        visible_settings[field_name] = account_settings.get(field_name, None)
-
-    return visible_settings
+    return AccountFullUserProfileReadOnlySerializer(
+        existing_user,
+        configuration=configuration,
+        admin_fields=admin_fields
+    ).data
 
 
 def _get_profile_visibility(user_profile, configuration):
