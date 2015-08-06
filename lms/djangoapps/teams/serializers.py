@@ -1,13 +1,15 @@
 """Defines serializers used by the Team API."""
-
+from copy import deepcopy
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.conf import settings
 
 from rest_framework import serializers
 
 from openedx.core.lib.api.serializers import CollapsedReferenceSerializer, PaginationSerializer
 from openedx.core.lib.api.fields import ExpandableField
 from openedx.core.djangoapps.user_api.serializers import UserSerializer
+from openedx.core.djangoapps.user_api.accounts.serializers import AccountFullUserProfileReadOnlySerializer
 
 from .models import CourseTeam, CourseTeamMembership
 
@@ -17,6 +19,10 @@ class UserMembershipSerializer(serializers.ModelSerializer):
 
     Used for listing team members.
     """
+    profile_configuration = deepcopy(settings.ACCOUNT_VISIBILITY_CONFIGURATION)
+    profile_configuration['shareable_fields'].append('url')
+    profile_configuration['public_fields'].append('url')
+
     user = ExpandableField(
         collapsed_serializer=CollapsedReferenceSerializer(
             model_class=User,
@@ -24,7 +30,7 @@ class UserMembershipSerializer(serializers.ModelSerializer):
             view_name='accounts_api',
             read_only=True,
         ),
-        expanded_serializer=UserSerializer(),
+        expanded_serializer=AccountFullUserProfileReadOnlySerializer(configuration=profile_configuration),
     )
 
     class Meta(object):
@@ -87,6 +93,10 @@ class CourseTeamCreationSerializer(serializers.ModelSerializer):
 
 class MembershipSerializer(serializers.ModelSerializer):
     """Serializes CourseTeamMemberships with information about both teams and users."""
+    profile_configuration = deepcopy(settings.ACCOUNT_VISIBILITY_CONFIGURATION)
+    profile_configuration['shareable_fields'].append('url')
+    profile_configuration['public_fields'].append('url')
+
     user = ExpandableField(
         collapsed_serializer=CollapsedReferenceSerializer(
             model_class=User,
@@ -94,7 +104,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             view_name='accounts_api',
             read_only=True,
         ),
-        expanded_serializer=UserSerializer(read_only=True)
+        expanded_serializer=AccountFullUserProfileReadOnlySerializer(configuration=profile_configuration)
     )
     team = ExpandableField(
         collapsed_serializer=CollapsedReferenceSerializer(

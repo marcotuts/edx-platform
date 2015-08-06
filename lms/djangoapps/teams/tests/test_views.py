@@ -152,13 +152,23 @@ class TeamAPITestCase(APITestCase, SharedModuleStoreTestCase):
             username='student_enrolled_both_courses_other_team'
         )
 
+        # Make this student have a public profile
+        self.create_and_enroll_student(username='student_enrolled_public_profile')
+        profile = self.users['student_enrolled_public_profile'].profile
+        profile.year_of_birth = 1970
+        profile.save()
+
         # 'solar team' is intentionally lower case to test case insensitivity in name ordering
         self.test_team_1 = CourseTeamFactory.create(
             name=u'sólar team',
             course_id=self.test_course_1.id,
             topic_id='topic_0'
         )
-        self.test_team_2 = CourseTeamFactory.create(name='Wind Team', course_id=self.test_course_1.id)
+        self.test_team_2 = CourseTeamFactory.create(
+            name='Wind Team',
+            course_id=self.test_course_1.id,
+            topic_id='topic_1'
+        )
         self.test_team_3 = CourseTeamFactory.create(name='Nuclear Team', course_id=self.test_course_1.id)
         self.test_team_4 = CourseTeamFactory.create(name='Coal Team', course_id=self.test_course_1.id, is_active=False)
         self.test_team_5 = CourseTeamFactory.create(name='Another Team', course_id=self.test_course_2.id)
@@ -172,6 +182,7 @@ class TeamAPITestCase(APITestCase, SharedModuleStoreTestCase):
             )
 
         self.test_team_1.add_user(self.users['student_enrolled'])
+        self.test_team_2.add_user(self.users['student_enrolled_public_profile'])
         self.test_team_3.add_user(self.users['student_enrolled_both_courses_other_team'])
         self.test_team_5.add_user(self.users['student_enrolled_both_courses_other_team'])
 
@@ -305,10 +316,18 @@ class TeamAPITestCase(APITestCase, SharedModuleStoreTestCase):
             **kwargs
         )
 
-    def verify_expanded_user(self, user):
+    def verify_expanded_public_user(self, user):
         """Verifies that fields exist on the returned user json indicating that it is expanded."""
-        for field in ['id', 'url', 'email', 'name', 'username', 'preferences']:
+        for field in ['username', 'url', 'bio', 'country', 'profile_image', 'time_zone', 'language_proficiencies']:
             self.assertIn(field, user)
+
+    def verify_expanded_private_user(self, user):
+        """Verifies that fields exist on the returned user json indicating that it is expanded."""
+        for field in ['username', 'url', 'profile_image']:
+            self.assertIn(field, user)
+        for field in ['bio', 'country', 'time_zone', 'language_proficiencies']:
+            self.assertNotIn(field, user)
+
 
     def verify_expanded_team(self, team):
         """Verifies that fields exist on the returned team json indicating that it is expanded."""
@@ -386,9 +405,13 @@ class TestListTeamsAPI(TeamAPITestCase):
         self.assertIsNone(result['next'])
         self.assertIsNotNone(result['previous'])
 
-    def test_expand_user(self):
+    def test_expand_private_user(self):
         result = self.get_teams_list(200, {'expand': 'user', 'topic_id': 'topic_0'})
-        self.verify_expanded_user(result['results'][0]['membership'][0]['user'])
+        self.verify_expanded_private_user(result['results'][0]['membership'][0]['user'])
+
+    def test_expand_public_user(self):
+        result = self.get_teams_list(200, {'expand': 'user', 'topic_id': 'topic_1'})
+        self.verify_expanded_public_user(result['results'][0]['membership'][0]['user'])
 
 
 @ddt.ddt
@@ -515,9 +538,13 @@ class TestDetailTeamAPI(TeamAPITestCase):
     def test_does_not_exist(self):
         self.get_team_detail('no_such_team', 404)
 
-    def test_expand_user(self):
+    def test_expand_private_user(self):
         result = self.get_team_detail(self.test_team_1.team_id, 200, {'expand': 'user'})
-        self.verify_expanded_user(result['membership'][0]['user'])
+        self.verify_expanded_private_user(result['membership'][0]['user'])
+
+    def test_expand_public_user(self):
+        result = self.get_team_detail(self.test_team_2.team_id, 200, {'expand': 'user'})
+        self.verify_expanded_public_user(result['membership'][0]['user'])
 
 
 @ddt.ddt
@@ -630,7 +657,7 @@ class TestListTopicsAPI(TeamAPITestCase):
         response = self.get_topics_list(data={'course_id': self.test_course_1.id})
         for topic in response['results']:
             self.assertIn('team_count', topic)
-            if topic['id'] == u'topic_0':
+            if topic['id'] == u'topic_0' or topic['id'] == u'topic_1':
                 self.assertEqual(topic['team_count'], 1)
             else:
                 self.assertEqual(topic['team_count'], 0)
@@ -667,6 +694,8 @@ class TestDetailTopicAPI(TeamAPITestCase):
         topic = self.get_topic_detail(topic_id='topic_0', course_id=self.test_course_1.id)
         self.assertEqual(topic['team_count'], 1)
         topic = self.get_topic_detail(topic_id='topic_1', course_id=self.test_course_1.id)
+        self.assertEqual(topic['team_count'], 1)
+        topic = self.get_topic_detail(topic_id='topic_2', course_id=self.test_course_1.id)
         self.assertEqual(topic['team_count'], 0)
 
 
@@ -715,9 +744,15 @@ class TestListMembershipAPI(TeamAPITestCase):
     def test_bad_team_id(self):
         self.get_membership_list(404, {'team_id': 'no_such_team'})
 
-    def test_expand_user(self):
+    def test_expand_private_user(self):
         result = self.get_membership_list(200, {'team_id': self.test_team_1.team_id, 'expand': 'user'})
-        self.verify_expanded_user(result['results'][0]['user'])
+        self.verify_expanded_private_user(result['results'][0]['user'])
+
+    def test_expand_public_user(self):
+        result = self.get_membership_list(200, {'team_id': self.test_team_2.team_id, 'expand': 'user'})
+        self.verify_expanded_public_user(result['results'][0]['user'])
+
+
 
     def test_expand_team(self):
         result = self.get_membership_list(200, {'team_id': self.test_team_1.team_id, 'expand': 'team'})
@@ -842,14 +877,23 @@ class TestDetailMembershipAPI(TeamAPITestCase):
             404
         )
 
-    def test_expand_user(self):
+    def test_expand_private_user(self):
         result = self.get_membership_detail(
             self.test_team_1.team_id,
             self.users['student_enrolled'].username,
             200,
             {'expand': 'user'}
         )
-        self.verify_expanded_user(result['user'])
+        self.verify_expanded_private_user(result['user'])
+
+    def test_expand_public_user(self):
+        result = self.get_membership_detail(
+            self.test_team_2.team_id,
+            self.users['student_enrolled_public_profile'].username,
+            200,
+            {'expand': 'user'}
+        )
+        self.verify_expanded_public_user(result['user'])
 
     def test_expand_team(self):
         result = self.get_membership_detail(
