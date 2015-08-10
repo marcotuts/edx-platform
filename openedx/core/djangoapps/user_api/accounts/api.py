@@ -28,7 +28,7 @@ from . import (
 )
 from .serializers import (
     AccountLegacyProfileSerializer, AccountUserSerializer,
-    AccountFullUserProfileReadOnlySerializer
+    UserProfileReadOnlySerializer
 )
 
 
@@ -41,9 +41,9 @@ def get_account_settings(request, username=None, configuration=None, view=None):
         based on who `requesting_user` is and the privacy settings of the user associated with `username`.
 
     Args:
-        requesting_user (User): The user requesting the account information. Only the user with username
-            `username` or users with "is_staff" privileges can get full account information.
-            Other users will get the account fields that the user has elected to share.
+        request (Request): The request object with account information about the requesting user.
+            Only the user with username `username` or users with "is_staff" privileges can get full
+            account information. Other users will get the account fields that the user has elected to share.
         username (str): Optional username for the desired account information. If not specified,
             `requesting_user.username` is assumed.
         configuration (dict): an optional configuration specifying which fields in the account
@@ -77,7 +77,7 @@ def get_account_settings(request, username=None, configuration=None, view=None):
     else:
         admin_fields = None
 
-    return AccountFullUserProfileReadOnlySerializer(
+    return UserProfileReadOnlySerializer(
         existing_user,
         configuration=configuration,
         custom_fields=admin_fields,

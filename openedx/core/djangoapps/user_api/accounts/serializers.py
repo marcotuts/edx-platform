@@ -39,7 +39,7 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
             return None
 
 
-class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
+class UserProfileReadOnlySerializer(serializers.Serializer):
     """
     Class that serializes the portion of User model needed for account information.
     """
@@ -52,7 +52,7 @@ class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
         # Don't pass the 'custom_fields' arg up to the superclass
         self.custom_fields = kwargs.pop('custom_fields', None)
 
-        super(AccountFullUserProfileReadOnlySerializer, self).__init__(*args, **kwargs)
+        super(UserProfileReadOnlySerializer, self).__init__(*args, **kwargs)
 
     def to_native(self, user):
         """
