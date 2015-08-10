@@ -8,8 +8,7 @@ from rest_framework import serializers
 
 from openedx.core.lib.api.serializers import CollapsedReferenceSerializer, PaginationSerializer
 from openedx.core.lib.api.fields import ExpandableField
-from openedx.core.djangoapps.user_api.serializers import UserSerializer
-from openedx.core.djangoapps.user_api.accounts.serializers import AccountFullUserProfileReadOnlySerializer
+from openedx.core.djangoapps.user_api.accounts.serializers import UserProfileReadOnlySerializer
 
 from .models import CourseTeam, CourseTeamMembership
 
@@ -30,7 +29,7 @@ class UserMembershipSerializer(serializers.ModelSerializer):
             view_name='accounts_api',
             read_only=True,
         ),
-        expanded_serializer=AccountFullUserProfileReadOnlySerializer(configuration=profile_configuration),
+        expanded_serializer=UserProfileReadOnlySerializer(configuration=profile_configuration),
     )
 
     class Meta(object):
@@ -104,7 +103,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             view_name='accounts_api',
             read_only=True,
         ),
-        expanded_serializer=AccountFullUserProfileReadOnlySerializer(configuration=profile_configuration)
+        expanded_serializer=UserProfileReadOnlySerializer(configuration=profile_configuration)
     )
     team = ExpandableField(
         collapsed_serializer=CollapsedReferenceSerializer(
