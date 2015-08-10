@@ -48,7 +48,7 @@
                            }));
                            self.$('.page-content-nav').append(tabEl);
                        });
-                       if(Backbone.history.getHash() === "") {
+                       if (!(Backbone.history.getHash() in this.urlMap)) {
                            this.setActiveTab(0);
                        }
                        return this;
@@ -70,7 +70,7 @@
                        view.setElement(this.$('.page-content-main')).render();
                        this.$('.sr-is-focusable.sr-tab').focus();
                        if (this.router) {
-                           this.router.navigate(tab.url, {replace: true, trigger: true});
+                           this.router.navigate(tab.url, {replace: true});
                        }
                    },
 

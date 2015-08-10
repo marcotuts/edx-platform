@@ -181,11 +181,11 @@ class TeamsTabTest(TeamsTabBase):
         self.verify_teams_present(True)
 
     @ddt.data(
-        ('browse', 'div.topics-list'),
+        ('browse', '.topics-list'),
         ('my-teams', 'div.teams-paging-header'),
         ('teams/{topic_id}/{team_id}', 'div.discussion-module'),
         ('topics/{topic_id}/create-team', 'div.create-team-instructions'),
-        ('topics/{topic_id}', 'div.teams-list'),
+        ('topics/{topic_id}', '.teams-list'),
         ('not-a-real-route', 'div.warning')
     )
     @ddt.unpack

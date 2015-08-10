@@ -94,6 +94,11 @@ define([
                 expectFocus(teamsTabView.$('.warning'));
             });
 
+            it('does not interfere with anchor links to #content', function () {
+                teamsTabView.router.navigate('#content', {trigger: true});
+                expect(teamsTabView.$('.warning')).toHaveClass('is-hidden');
+            });
+
             it('displays and focuses an error message when trying to navigate to a nonexistent topic', function () {
                 var requests = AjaxHelpers.requests(this);
                 teamsTabView.router.navigate('topics/no_such_topic', {trigger: true});

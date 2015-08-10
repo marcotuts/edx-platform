@@ -56,6 +56,12 @@
                     router = this.router = new Backbone.Router();
                     _.each([
                         [':default', _.bind(this.routeNotFound, this)],
+                        ['content', _.bind(function () {
+                            // The backbone router unfortunately usurps the
+                            // default behavior of in-page-links.  This hack
+                            // prevents the screen reader in-page-link from
+                            // being picked up by the backbone router.
+                        }, this)],
                         ['topics/:topic_id(/)', _.bind(this.browseTopic, this)],
                         ['topics/:topic_id/create-team(/)', _.bind(this.newTeam, this)],
                         ['teams/:topic_id/:team_id(/)', _.bind(this.browseTeam, this)],
