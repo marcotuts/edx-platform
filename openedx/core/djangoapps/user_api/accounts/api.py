@@ -31,8 +31,9 @@ from .serializers import (
     AccountFullUserProfileReadOnlySerializer
 )
 
+
 @intercept_errors(UserAPIInternalError, ignore_errors=[UserAPIRequestError])
-def get_account_settings(requesting_user, username=None, configuration=None, view=None):
+def get_account_settings(request, username=None, configuration=None, view=None):
     """Returns account information for a user serialized as JSON.
 
     Note:
@@ -60,6 +61,8 @@ def get_account_settings(requesting_user, username=None, configuration=None, vie
             `username` is not specified)
          UserAPIInternalError: the operation failed due to an unexpected error.
     """
+    requesting_user = request.user
+
     if username is None:
         username = requesting_user.username
 
@@ -69,12 +72,16 @@ def get_account_settings(requesting_user, username=None, configuration=None, vie
         raise UserNotFound()
 
     has_full_access = requesting_user.username == username or requesting_user.is_staff
-    admin_fields = has_full_access and view != 'shared'
+    if has_full_access and view != 'shared':
+        admin_fields = settings.ACCOUNT_VISIBILITY_CONFIGURATION.get('admin_fields')
+    else:
+        admin_fields = None
 
     return AccountFullUserProfileReadOnlySerializer(
         existing_user,
         configuration=configuration,
-        admin_fields=admin_fields
+        custom_fields=admin_fields,
+        context={'request':request}
     ).data
 
 

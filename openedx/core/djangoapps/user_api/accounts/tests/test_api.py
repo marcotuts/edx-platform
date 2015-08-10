@@ -15,6 +15,7 @@ from student.tests.factories import UserFactory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
+from django.test.client import RequestFactory
 from student.models import PendingEmailChange
 from student.tests.tests import UserSettingsEventTestMixin
 from ...errors import (
@@ -43,6 +44,7 @@ class TestAccountApi(UserSettingsEventTestMixin, TestCase):
 
     def setUp(self):
         super(TestAccountApi, self).setUp()
+        self.request_factory = RequestFactory()
         self.table = "student_languageproficiency"
         self.user = UserFactory.create(password=self.password)
         self.different_user = UserFactory.create(password=self.password)
@@ -51,6 +53,8 @@ class TestAccountApi(UserSettingsEventTestMixin, TestCase):
 
     def test_get_username_provided(self):
         """Test the difference in behavior when a username is supplied to get_account_settings."""
+        # WIP: Fix this so these tests pass a request object. Sample code in comment below
+        # request = self.request_factory.get("/api/user/v1/accounts/{username}".format(username=))
         account_settings = get_account_settings(self.user)
         self.assertEqual(self.user.username, account_settings["username"])
 

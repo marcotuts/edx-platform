@@ -2518,6 +2518,7 @@ ACCOUNT_VISIBILITY_CONFIGURATION = {
         'profile_image',
     ],
 
+    # The list of account fields that are visible only to staff and users viewing their own profiles
     "admin_fields": [
         "username",
         "email",

@@ -38,6 +38,7 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
         except AttributeError:
             return None
 
+
 class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
     """
     Class that serializes the portion of User model needed for account information.
@@ -48,10 +49,9 @@ class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
         if not self.configuration:
             self.configuration = settings.ACCOUNT_VISIBILITY_CONFIGURATION
 
-        # Don't pass the 'admin_fields' arg up to the superclass
-        self.admin_fields = kwargs.pop('admin_fields', False)
+        # Don't pass the 'custom_fields' arg up to the superclass
+        self.custom_fields = kwargs.pop('custom_fields', None)
 
-        # Instantiate the superclass normally
         super(AccountFullUserProfileReadOnlySerializer, self).__init__(*args, **kwargs)
 
     def to_native(self, user):
@@ -64,11 +64,9 @@ class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
 
         data = {
             "username": user.username,
-            "url": ''.join([
-                'http://',
-                get_current_site(None).domain,
+            "url": self.context.get('request').build_absolute_uri(
                 reverse('accounts_api', kwargs={'username': user.username})
-            ]),
+            ),
             "email": user.email,
             "date_joined": user.date_joined,
             "is_active": user.is_active,
@@ -93,19 +91,15 @@ class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
             self._visible_fields(profile, user),
             data
         )
+
     def _get_profile_image(self, user_profile, user):
         """ Returns metadata about a user's profile image. """
         data = {'has_image': user_profile.has_profile_image}
-        urls = get_profile_image_urls_for_user(user)
+        urls = get_profile_image_urls_for_user(user, self.context.get('request'))
         data.update({
             '{image_key_prefix}_{size}'.format(image_key_prefix=PROFILE_IMAGE_KEY_PREFIX, size=size_display_name): url
             for size_display_name, url in urls.items()
         })
-
-        # add absolute path to image urls if it is not already there
-        for key, value in data.items():
-            if key.startswith(PROFILE_IMAGE_KEY_PREFIX):
-                data[key] = ''.join(["http://", get_current_site(None).domain, value])
 
         return data
 
@@ -118,8 +112,8 @@ class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
         :return: whitelist List of fields to be shown
         """
 
-        if self.admin_fields:
-           return self.configuration.get('admin_fields')
+        if self.custom_fields:
+            return self.custom_fields
 
         profile_visibility = self._get_profile_visibility(user_profile, user)
 
@@ -148,6 +142,7 @@ class AccountFullUserProfileReadOnlySerializer(serializers.Serializer):
             visible_serialized_account[field_name] = serialized_account.get(field_name, None)
 
         return visible_serialized_account
+
 
 class AccountUserSerializer(serializers.HyperlinkedModelSerializer, ReadOnlyFieldsSerializerMixin):
     """
