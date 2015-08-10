@@ -53,15 +53,19 @@ class TestAccountApi(UserSettingsEventTestMixin, TestCase):
 
     def test_get_username_provided(self):
         """Test the difference in behavior when a username is supplied to get_account_settings."""
-        # WIP: Fix this so these tests pass a request object. Sample code in comment below
-        # request = self.request_factory.get("/api/user/v1/accounts/{username}".format(username=))
-        account_settings = get_account_settings(self.user)
+        request = self.request_factory.get("/api/user/v1/accounts/")
+        request.user = self.user
+        account_settings = get_account_settings(request)
         self.assertEqual(self.user.username, account_settings["username"])
 
-        account_settings = get_account_settings(self.user, username=self.user.username)
+        request = self.request_factory.get("/api/user/v1/accounts/{username}".format(username=self.user.username))
+        request.user = self.user
+        account_settings = get_account_settings(request, username=self.user.username)
         self.assertEqual(self.user.username, account_settings["username"])
 
-        account_settings = get_account_settings(self.user, username=self.different_user.username)
+        request = self.request_factory.get("/api/user/v1/accounts/{username}".format(username=self.different_user.username))
+        request.user = self.user
+        account_settings = get_account_settings(request, username=self.different_user.username)
         self.assertEqual(self.different_user.username, account_settings["username"])
 
     def test_get_configuration_provided(self):
@@ -311,14 +315,17 @@ class AccountCreationActivationAndPasswordChangeTest(TestCase):
         # Create the account, which is initially inactive
         activation_key = create_account(self.USERNAME, self.PASSWORD, self.EMAIL)
         user = User.objects.get(username=self.USERNAME)
-        account = get_account_settings(user)
+
+        request = RequestFactory().get("/api/user/v1/accounts/")
+        request.user = user
+        account = get_account_settings(request)
         self.assertEqual(self.USERNAME, account["username"])
         self.assertEqual(self.EMAIL, account["email"])
         self.assertFalse(account["is_active"])
 
         # Activate the account and verify that it is now active
         activate_account(activation_key)
-        account = get_account_settings(user)
+        account = get_account_settings(request)
         self.assertTrue(account['is_active'])
 
     def test_create_account_duplicate_username(self):

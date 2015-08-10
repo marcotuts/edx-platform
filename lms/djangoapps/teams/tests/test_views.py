@@ -369,7 +369,7 @@ class TestListTeamsAPI(TeamAPITestCase):
         self.verify_names({'course_id': 'no_such_course'}, 400)
 
     def test_filter_course_id(self):
-        self.verify_names({'course_id': self.test_course_2.id}, 200, ['Another Team'], user='staff')
+        self.verify_names({'course_id': self.test_course_2.id}, 200, ['Another Team', 'Public Profile Team'], user='staff')
 
     def test_filter_topic_id(self):
         self.verify_names({'course_id': self.test_course_1.id, 'topic_id': 'topic_0'}, 200, [u'sólar team'])
@@ -413,7 +413,11 @@ class TestListTeamsAPI(TeamAPITestCase):
         self.verify_expanded_private_user(result['results'][0]['membership'][0]['user'])
 
     def test_expand_public_user(self):
-        result = self.get_teams_list(200, {'expand': 'user', 'topic_id': 'topic_1'})
+        result = self.get_teams_list(
+            200,
+            {'expand': 'user', 'topic_id': 'topic_1'},
+            user='student_enrolled_public_profile'
+        )
         self.verify_expanded_public_user(result['results'][0]['membership'][0]['user'])
 
 
@@ -546,7 +550,12 @@ class TestDetailTeamAPI(TeamAPITestCase):
         self.verify_expanded_private_user(result['membership'][0]['user'])
 
     def test_expand_public_user(self):
-        result = self.get_team_detail(self.test_team_6.team_id, 200, {'expand': 'user'})
+        result = self.get_team_detail(
+            self.test_team_6.team_id,
+            200,
+            {'expand': 'user'},
+            user='student_enrolled_public_profile'
+        )
         self.verify_expanded_public_user(result['membership'][0]['user'])
 
 
@@ -660,7 +669,7 @@ class TestListTopicsAPI(TeamAPITestCase):
         response = self.get_topics_list(data={'course_id': self.test_course_1.id})
         for topic in response['results']:
             self.assertIn('team_count', topic)
-            if topic['id'] == u'topic_0' or topic['id'] == u'topic_1':
+            if topic['id'] == u'topic_0':
                 self.assertEqual(topic['team_count'], 1)
             else:
                 self.assertEqual(topic['team_count'], 0)
@@ -750,7 +759,11 @@ class TestListMembershipAPI(TeamAPITestCase):
         self.verify_expanded_private_user(result['results'][0]['user'])
 
     def test_expand_public_user(self):
-        result = self.get_membership_list(200, {'team_id': self.test_team_6.team_id, 'expand': 'user'})
+        result = self.get_membership_list(
+            200,
+            {'team_id': self.test_team_6.team_id, 'expand': 'user'},
+            user='student_enrolled_public_profile'
+        )
         self.verify_expanded_public_user(result['results'][0]['user'])
 
     def test_expand_team(self):
@@ -890,10 +903,8 @@ class TestDetailMembershipAPI(TeamAPITestCase):
             self.test_team_6.team_id,
             self.users['student_enrolled_public_profile'].username,
             200,
-            {
-                'expand': 'user',
-                'user': self.users['student_enrolled_public_profile']
-            }
+            {'expand': 'user'},
+            user='student_enrolled_public_profile'
         )
         self.verify_expanded_public_user(result['user'])
 
