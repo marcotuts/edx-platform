@@ -81,7 +81,7 @@ def get_account_settings(request, username=None, configuration=None, view=None):
         existing_user,
         configuration=configuration,
         custom_fields=admin_fields,
-        context={'request':request}
+        context={'request': request}
     ).data
 
 
