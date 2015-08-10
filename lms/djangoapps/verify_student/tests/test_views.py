@@ -1482,7 +1482,7 @@ class TestSubmitPhotosForVerification(TestCase):
             AssertionError
 
         """
-        account_settings = get_account_settings(self.user)
+        account_settings = get_account_settings(httpretty.last_request())
         self.assertEqual(account_settings['name'], full_name)
 
     def _get_post_data(self):
