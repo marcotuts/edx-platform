@@ -1,7 +1,5 @@
 """Tests of comprehensive theming."""
 
-import os.path
-
 from django.conf import settings
 from django.test import TestCase
 
@@ -51,6 +49,20 @@ class TestComprehensiveTheming(TestCase):
 
         do_the_test(self)
 
+    def test_theme_adjusts_staticfiles_search_path(self):
+        # Test that a theme adds itself to the staticfiles search path.
+        before_finders = list(settings.STATICFILES_FINDERS)
+        before_dirs = list(settings.STATICFILES_DIRS)
+
+        @with_comp_theme(settings.REPO_ROOT / 'themes/red-theme')
+        def do_the_test(self):
+            """A function to do the work so we can use the decorator."""
+            self.assertEqual(list(settings.STATICFILES_FINDERS), before_finders)
+            self.assertEqual(settings.STATICFILES_DIRS[0], settings.REPO_ROOT / 'themes/red-theme/lms/static')
+            self.assertEqual(settings.STATICFILES_DIRS[1:], before_dirs)
+
+        do_the_test(self)
+
     def test_default_logo_image(self):
         result = staticfiles.finders.find('images/logo.png')
         self.assertEqual(result, settings.REPO_ROOT / 'lms/static/images/logo.png')
@@ -59,17 +71,3 @@ class TestComprehensiveTheming(TestCase):
     def test_overridden_logo_image(self):
         result = staticfiles.finders.find('images/logo.png')
         self.assertEqual(result, settings.REPO_ROOT / 'themes/red-theme/lms/static/images/logo.png')
-
-    def test_default_css(self):
-        # Where we find css/lms-main.css depends on whether lms/static/css
-        # exists, which depends on what commands have run before.  Get the
-        # possibilities, and check that 1) the STATIC_ROOT file is in the list,
-        # and 2) that no red-theme file is in the list.
-        css_files = staticfiles.finders.find('css/lms-main.css', all=True)
-        self.assertIn(os.path.abspath(settings.STATIC_ROOT / 'css/lms-main.css'), css_files)
-        self.assertFalse(any('red-theme' in css_file for css_file in css_files))
-
-    @with_comp_theme(settings.REPO_ROOT / 'themes/red-theme')
-    def test_overridden_css(self):
-        css_file = staticfiles.finders.find('css/lms-main.css')
-        self.assertEqual(css_file, settings.REPO_ROOT / 'themes/red-theme/lms/static/css/lms-main.css')
