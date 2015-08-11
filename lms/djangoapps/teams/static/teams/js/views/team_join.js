@@ -24,9 +24,6 @@ define(['backbone',
                    this.teamMembershipsUrl = options.teamMembershipsUrl;
                    _.bindAll(this, 'render', 'joinTeam', 'getUserTeamInfo');
                    this.listenTo(this.model, "change", this.render);
-
-                   // construct url for a particular team
-                   this.model.url = options.teamsUrl + this.model.get('id');
                },
 
                render: function() {

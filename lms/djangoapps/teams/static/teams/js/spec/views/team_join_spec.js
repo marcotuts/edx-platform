@@ -4,7 +4,8 @@ define([
 ], function (_, AjaxHelpers, TeamModel, TeamJoinView, TeamProfileView) {
     'use strict';
     describe('TeamJoinView', function () {
-        var createTeamModelData,
+        var createTeamsUrl,
+            createTeamModelData,
             createMembershipData,
             createJoinView,
             ACCOUNTS_API_URL = '/api/user/v1/accounts/',
@@ -16,6 +17,10 @@ define([
                 '<div class="msg-content"><div class="copy"></div></div><div class="header-action-view"></div>'
             );
         });
+
+        createTeamsUrl = function (teamId) {
+            return TEAMS_URL + teamId + '?expand=user';
+        };
 
         createTeamModelData = function (teamId, teamName, membership) {
             return  {
@@ -36,13 +41,16 @@ define([
             ];
         };
 
-        createJoinView = function(maxTeamSize, currentUsername, teamModelData) {
+        createJoinView = function(maxTeamSize, currentUsername, teamModelData, teamId) {
+            teamId = teamId || 'teamA';
+
             var model = new TeamModel(teamModelData, { parse: true });
+            model.url = createTeamsUrl(teamId);
 
             var teamJoinView = new TeamJoinView(
                 {
                     model: model,
-                    teamsUrl: TEAMS_URL,
+                    teamsUrl: createTeamsUrl(teamId),
                     maxTeamSize: maxTeamSize,
                     currentUsername: currentUsername,
                     teamMembershipsUrl: TEAMS_MEMBERSHIP_URL
@@ -93,7 +101,7 @@ define([
             AjaxHelpers.expectRequest(
                 requests,
                 'GET',
-                TEAMS_URL + teamId
+                createTeamsUrl(teamId)
             );
             AjaxHelpers.respondWithJson(
                 requests, createTeamModelData(teamId, teamName, createMembershipData(currentUsername))
