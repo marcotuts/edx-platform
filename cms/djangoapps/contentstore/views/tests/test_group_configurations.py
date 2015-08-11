@@ -841,8 +841,17 @@ class GroupConfigurationsUsageInfoTestCase(CourseTestCase, HelperMethods):
                     Group(id=0, name="Group A"),
                     Group(id=1, name="Group B"),
                 ],
-                parameters={},
-            )
+            ),
+            UserPartition(
+                id=0,
+                name='Random user partition',
+                scheme=UserPartition.get_scheme('random'),
+                description='Random user partition',
+                groups=[
+                    Group(id=0, name="Group A"),
+                    Group(id=1, name="Group B"),
+                ],
+            ),
         ]
         self.store.update_item(self.course, ModuleStoreEnum.UserID.test)
 

@@ -199,6 +199,8 @@ class GroupConfiguration(object):
         """
         Returns all units names and their urls.
 
+        This will return only groups for the cohort user partition.
+
         Returns:
         {'group_id':
             [
@@ -246,6 +248,8 @@ class GroupConfiguration(object):
     def _get_content_groups_items_usage_info(course, items):
         """
         Returns all items names and their urls.
+
+        This will return only groups for the cohort user partition.
 
         Returns:
         {'group_id':
