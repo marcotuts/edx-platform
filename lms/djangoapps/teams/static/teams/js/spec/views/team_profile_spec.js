@@ -205,7 +205,15 @@ define([
                     var view = createTeamProfileView(requests, {
                         country: 'US',
                         language: 'en',
-                        membership: [{'user':{'username': 'bilbo'}}]
+                        membership: [{
+                            'user': {
+                                'username': 'bilbo',
+                                'profile_image': {
+                                    'has_image': true,
+                                    'image_url_medium': '/image-url'
+                                }
+                            }
+                        }]
                     });
                     assertTeamDetails(view, 1, true);
 
