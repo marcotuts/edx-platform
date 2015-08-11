@@ -63,7 +63,9 @@ class TestAccountApi(UserSettingsEventTestMixin, TestCase):
         account_settings = get_account_settings(request, username=self.user.username)
         self.assertEqual(self.user.username, account_settings["username"])
 
-        request = self.request_factory.get("/api/user/v1/accounts/{username}".format(username=self.different_user.username))
+        request = self.request_factory.get(
+            "/api/user/v1/accounts/{username}".format(username=self.different_user.username)
+        )
         request.user = self.user
         account_settings = get_account_settings(request, username=self.different_user.username)
         self.assertEqual(self.different_user.username, account_settings["username"])
