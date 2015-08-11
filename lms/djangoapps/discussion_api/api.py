@@ -337,7 +337,7 @@ def get_thread_list(
     return ret
 
 
-def get_comment_list(request, thread_id, endorsed, page, page_size):
+def get_comment_list(request, thread_id, endorsed, page, page_size, mark_as_read=False):
     """
     Return the list of comments in the given thread.
 
@@ -368,7 +368,7 @@ def get_comment_list(request, thread_id, endorsed, page, page_size):
         retrieve_kwargs={
             "recursive": True,
             "user_id": request.user.id,
-            "mark_as_read": True,
+            "mark_as_read": mark_as_read,
             "response_skip": response_skip,
             "response_limit": page_size,
         }

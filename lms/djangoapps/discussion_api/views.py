@@ -404,7 +404,8 @@ class CommentViewSet(_ViewMixin, DeveloperErrorViewMixin, ViewSet):
                 form.cleaned_data["thread_id"],
                 form.cleaned_data["endorsed"],
                 form.cleaned_data["page"],
-                form.cleaned_data["page_size"]
+                form.cleaned_data["page_size"],
+                form.cleaned_data["mark_as_read"]
             )
         )
 
