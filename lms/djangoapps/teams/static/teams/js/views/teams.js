@@ -38,7 +38,7 @@
                         _.escape(gettext("Try {browse_span_start}browsing all teams{span_end} or {search_span_start}searching team descriptions{span_end}. If you still can't find a team to join, {create_span_start}create a new team in this topic{span_end}.")),
                         {
                             'browse_span_start': '<a class="browse-teams" href="">',
-                            'search_span_start': '<a class="search-team-descriptions" href="">',
+                            'search_span_start': '<a class="search-teams" href="">',
                             'create_span_start': '<a class="create-team" href="">',
                             'span_end': '</a>'
                         }
@@ -68,7 +68,7 @@
                 Backbone.history.navigate('browse', {trigger: true});
             },
 
-            searchTeamDescriptions: function (event) {
+            searchTeams: function (event) {
                 event.preventDefault();
                 // TODO! Will navigate to correct place once required functionality is available
                 Backbone.history.navigate('browse', {trigger: true});

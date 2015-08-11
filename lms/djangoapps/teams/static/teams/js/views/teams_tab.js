@@ -36,6 +36,37 @@
                 }
             });
 
+            var MyTeamsView = TeamsView.extend({
+                showActions: false,
+
+                initialize: function(options) {
+                    TeamsView.prototype.initialize.call(this, options);
+                    this.allowMultipleTeamMembership = options.allowMultipleTeamMembership;
+                },
+
+                render: function() {
+                    TeamsView.prototype.render.call(this);
+                    if (this.collection.length === 0) {
+                        this.$el.append('<p>You are not currently a member of any teams.</p>');
+                    }
+                    return this;
+                },
+
+                createHeaderView: function() {
+                    if (this.allowMultipleTeamMembership) {
+                        return TeamsView.prototype.createHeaderView.call(this);
+                    }
+                    return null;
+                },
+
+                createFooterView: function() {
+                    if (this.allowMultipleTeamMembership) {
+                        return TeamsView.prototype.createFooterView.call(this);
+                    }
+                    return null;
+                }
+            });
+
             var TeamTabView = Backbone.View.extend({
                 initialize: function(options) {
                     var router;
@@ -45,6 +76,7 @@
                     this.teamsUrl = options.teamsUrl;
                     this.teamMembershipsUrl = options.teamMembershipsUrl;
                     this.maxTeamSize = options.maxTeamSize;
+                    this.allowMultipleTeamMembership = options.allowMultipleTeamMembership;
                     this.languages = options.languages;
                     this.countries = options.countries;
                     this.userInfo = options.userInfo;
@@ -72,16 +104,16 @@
                             course_id: this.courseID,
                             username: this.userInfo.username,
                             privileged: this.userInfo.privileged,
+                            allowMultipleTeamMembership: this.allowMultipleTeamMembership,
                             parse: true
                         }
                     ).bootstrap();
 
-                    this.myTeamsView = new TeamsView({
+                    this.myTeamsView = new MyTeamsView({
                         router: this.router,
                         collection: this.teamMemberships,
                         teamMemberships: this.teamMemberships,
                         maxTeamSize: this.maxTeamSize,
-                        showActions: false,
                         teamParams: {
                             courseId: this.courseID,
                             teamsUrl: this.teamsUrl,
@@ -109,7 +141,7 @@
                         }),
                         main: new TabbedView({
                             tabs: [{
-                                title: gettext('My Teams'),
+                                title: this.allowMultipleTeamMembership ? gettext('My Teams') : gettext('My Team'),
                                 url: 'my-teams',
                                 view: this.myTeamsView
                             }, {
@@ -120,6 +152,24 @@
                             router: this.router
                         })
                     });
+                },
+
+                /**
+                 * Start up the Teams app
+                 */
+                start: function() {
+                    Backbone.history.start();
+
+                    // Navigate to the default page if there is no history:
+                    // 1. If the user belongs to at least one team, jump to the "My Teams" page
+                    // 2. If not, then jump to the "Browse" page
+                    if (Backbone.history.getFragment() === '') {
+                        if (this.teamMemberships.length > 0) {
+                            this.router.navigate('my-teams', {trigger: true});
+                        } else {
+                            this.router.navigate('browse', {trigger: true});
+                        }
+                    }
                 },
 
                 render: function() {

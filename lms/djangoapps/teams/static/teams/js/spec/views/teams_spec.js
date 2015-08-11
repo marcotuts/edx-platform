@@ -96,6 +96,7 @@ define([
                 el: '.teams-container',
                 collection: options.teams || createTeams(createTeamData(1, 5)),
                 teamMemberships: options.teamMemberships || createTeamMemberships(createTeamMembershipsData(1, 5)),
+                showActions: true,
                 teamParams: {
                     topicID: 'test-topic',
                     countries: countries,
