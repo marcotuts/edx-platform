@@ -174,13 +174,10 @@ class TeamAPITestCase(APITestCase, SharedModuleStoreTestCase):
         self.test_team_6 = CourseTeamFactory.create(
             name='Public Profile Team',
             course_id=self.test_course_2.id,
-            topic_id='topic_1'
+            topic_id='topic_6'
         )
 
-        for user, course in [
-            ('staff', self.test_course_1),
-            ('course_staff', self.test_course_1),
-        ]:
+        for user, course in [('staff', self.test_course_1), ('course_staff', self.test_course_1)]:
             CourseEnrollment.enroll(
                 self.users[user], course.id, check_access=True
             )
@@ -369,7 +366,12 @@ class TestListTeamsAPI(TeamAPITestCase):
         self.verify_names({'course_id': 'no_such_course'}, 400)
 
     def test_filter_course_id(self):
-        self.verify_names({'course_id': self.test_course_2.id}, 200, ['Another Team', 'Public Profile Team'], user='staff')
+        self.verify_names(
+            {'course_id': self.test_course_2.id},
+            200,
+            ['Another Team', 'Public Profile Team'],
+            user='staff'
+        )
 
     def test_filter_topic_id(self):
         self.verify_names({'course_id': self.test_course_1.id, 'topic_id': 'topic_0'}, 200, [u'sólar team'])
@@ -415,7 +417,11 @@ class TestListTeamsAPI(TeamAPITestCase):
     def test_expand_public_user(self):
         result = self.get_teams_list(
             200,
-            {'expand': 'user', 'topic_id': 'topic_1'},
+            {
+                'expand': 'user',
+                'topic_id': 'topic_6',
+                'course_id': self.test_course_2.id
+            },
             user='student_enrolled_public_profile'
         )
         self.verify_expanded_public_user(result['results'][0]['membership'][0]['user'])

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from django.contrib.sites.models import get_current_site
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from openedx.core.djangoapps.user_api.accounts import NAME_MIN_LENGTH
