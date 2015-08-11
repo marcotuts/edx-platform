@@ -46,6 +46,7 @@
                     this.topicUrl = options.topicUrl;
                     this.teamsUrl = options.teamsUrl;
                     this.teamMembershipsUrl = options.teamMembershipsUrl;
+                    this.teamsMembershipDetailUrl = options.teamsMembershipDetailUrl;
                     this.maxTeamSize = options.maxTeamSize;
                     this.languages = options.languages;
                     this.countries = options.countries;
@@ -249,7 +250,8 @@
                                     requestUsername: username,
                                     countries: self.countries,
                                     languages: self.languages,
-                                    teamInviteUrl: self.teamsBaseUrl + '#teams/' + topicID + '/' + teamID + '?invite=true'  
+                                    teamInviteUrl: self.teamsBaseUrl + '#teams/' + topicID + '/' + teamID + '?invite=true',
+                                    teamsMembershipDetailUrl: self.teamsMembershipDetailUrl
                                 });
                             var teamJoinView = new TeamJoinView(
                                 {
