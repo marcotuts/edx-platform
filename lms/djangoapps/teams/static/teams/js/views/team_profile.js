@@ -53,13 +53,11 @@
                 renderTeamMembers: function() {
                     var view = this;
                     _.each(this.memberships, function(membership) {
-                        if (membership.user.profile_image && membership.user.profile_image.has_image) {
-                            view.$('.members-info').append(_.template(teamMemberTemplate, {
-                                imageUrl: membership.user.profile_image.image_url_medium,
-                                username: membership.user.username,
-                                memberProfileUrl: '/u/' + membership.user.username
-                            }));
-                        }
+                        view.$('.members-info').append(_.template(teamMemberTemplate, {
+                            imageUrl: membership.user.profile_image.image_url_medium,
+                            username: membership.user.username,
+                            memberProfileUrl: '/u/' + membership.user.username
+                        }));
                     });
                 },
 
