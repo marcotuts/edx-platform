@@ -96,11 +96,14 @@ define([
             Backbone.history.stop();
         });
 
-        it('shows the my teams tab initially', function () {
-            var teamsTabView = createTeamsTabView();
-            expectHeader(teamsTabView, 'See all teams in your course, organized by topic');
-            expectContent(teamsTabView, 'Showing 1 out of 1 total');
-            expectContent(teamsTabView, 'Discrete Maths');
+        describe('My Teams', function() {
+            it('shows the "My Teams" tab initially', function () {
+                var teamsTabView = createTeamsTabView();
+                expectHeader(teamsTabView, 'See all teams in your course, organized by topic');
+                expectContent(teamsTabView, 'Showing 1 out of 1 total');
+                expectContent(teamsTabView, 'Discrete Maths');
+                expect(teamsTabView.$el.text()).not.toContain('Are you having trouble finding a team to join?');
+            });
         });
 
         describe('Navigation', function () {

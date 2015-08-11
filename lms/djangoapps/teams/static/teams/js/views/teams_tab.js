@@ -81,6 +81,7 @@
                         collection: this.teamMemberships,
                         teamMemberships: this.teamMemberships,
                         maxTeamSize: this.maxTeamSize,
+                        showActions: false,
                         teamParams: {
                             courseId: this.courseID,
                             teamsUrl: this.teamsUrl,
@@ -195,6 +196,7 @@
                                             collection: collection,
                                             teamMemberships: self.teamMemberships,
                                             maxTeamSize: self.maxTeamSize,
+                                            showActions: true,
                                             teamParams: {
                                                 courseId: self.courseID,
                                                 teamsUrl: self.teamsUrl,

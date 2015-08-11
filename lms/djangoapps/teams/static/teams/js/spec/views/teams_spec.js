@@ -150,7 +150,6 @@ define([
                 );
             });
 
-
             it('can navigate to correct routes', function () {
                 var emptyMembership = createTeamMemberships([]),
                     teamsView = createTeamsView({ teamMemberships: emptyMembership });
