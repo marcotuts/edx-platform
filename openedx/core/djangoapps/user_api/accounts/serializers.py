@@ -69,7 +69,7 @@ class UserProfileReadOnlySerializer(serializers.Serializer):
             "email": user.email,
             "date_joined": user.date_joined,
             "is_active": user.is_active,
-            "bio": profile.bio,
+            "bio": AccountLegacyProfileSerializer.convert_empty_to_None(profile.bio),
             "country": AccountLegacyProfileSerializer.convert_empty_to_None(profile.country.code),
             "profile_image": self._get_profile_image(profile, user),
             "time_zone": None,

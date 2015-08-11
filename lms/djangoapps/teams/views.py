@@ -38,6 +38,7 @@ from courseware.courses import get_course_with_access, has_access
 from student.models import CourseEnrollment, CourseAccessRole
 from student.roles import CourseStaffRole
 from django_comment_client.utils import has_discussion_privileges
+from teams import is_feature_enabled
 from .models import CourseTeam, CourseTeamMembership
 from .serializers import (
     CourseTeamSerializer,
@@ -52,8 +53,6 @@ from .errors import AlreadyOnTeamInCourse, NotEnrolledInCourseForTeam
 
 
 
-# Constants
-from teams import is_feature_enabled
 
 TEAM_MEMBERSHIPS_PER_PAGE = 2
 TOPICS_PER_PAGE = 12
