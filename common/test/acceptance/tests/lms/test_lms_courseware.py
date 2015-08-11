@@ -6,11 +6,15 @@ import time
 
 from ..helpers import UniqueCourseTest
 from ...pages.studio.auto_auth import AutoAuthPage
+from ...pages.lms.create_mode import ModeCreationPage
 from ...pages.studio.overview import CourseOutlinePage
 from ...pages.lms.courseware import CoursewarePage, CoursewareSequentialTabPage
 from ...pages.lms.course_nav import CourseNavPage
 from ...pages.lms.problem import ProblemPage
 from ...pages.common.logout import LogoutPage
+from ...pages.lms.track_selection import TrackSelectionPage
+from ...pages.lms.pay_and_verify import PaymentAndVerificationFlow, FakePaymentPage
+from ...pages.lms.dashboard import DashboardPage
 from ...fixtures.course import CourseFixture, XBlockFixtureDesc
 
 
@@ -63,14 +67,6 @@ class CoursewareTest(UniqueCourseTest):
         self.problem_page = ProblemPage(self.browser)
         self.assertEqual(self.problem_page.problem_name, 'TEST PROBLEM 1')
 
-    def _change_problem_release_date_in_studio(self):
-        """
-
-        """
-        self.course_outline.q(css=".subsection-header-actions .configure-button").first.click()
-        self.course_outline.q(css="#start_date").fill("01/01/2030")
-        self.course_outline.q(css=".action-save").first.click()
-
     def _auto_auth(self, username, email, staff):
         """
         Logout and login with given credentials.
@@ -94,7 +90,7 @@ class CoursewareTest(UniqueCourseTest):
         self.course_outline.visit()
 
         # Set release date for subsection in future.
-        self._change_problem_release_date_in_studio()
+        self.course_outline.change_problem_release_date_in_studio()
 
         # Wait for 2 seconds to save new date.
         time.sleep(2)
@@ -109,7 +105,7 @@ class CoursewareTest(UniqueCourseTest):
         self.assertEqual(self.problem_page.problem_name, 'TEST PROBLEM 2')
 
 
-class ProctoringExamTest(UniqueCourseTest):
+class ProctoredExamTest(UniqueCourseTest):
     """
     Test courseware.
     """
@@ -117,7 +113,7 @@ class ProctoringExamTest(UniqueCourseTest):
     EMAIL = "student101@example.com"
 
     def setUp(self):
-        super(ProctoringExamTest, self).setUp()
+        super(ProctoredExamTest, self).setUp()
 
         self.courseware_page = CoursewarePage(self.browser, self.course_id)
 
@@ -145,6 +141,16 @@ class ProctoringExamTest(UniqueCourseTest):
             )
         ).install()
 
+        self.track_selection_page = TrackSelectionPage(self.browser, self.course_id)
+        self.payment_and_verification_flow = PaymentAndVerificationFlow(self.browser, self.course_id)
+        self.immediate_verification_page = PaymentAndVerificationFlow(self.browser, self.course_id, entry_point='verify-now')
+        self.upgrade_page = PaymentAndVerificationFlow(self.browser, self.course_id, entry_point='upgrade')
+        self.fake_payment_page = FakePaymentPage(self.browser, self.course_id)
+        self.dashboard_page = DashboardPage(self.browser)
+
+        # Add a verified mode to the course
+        ModeCreationPage(self.browser, self.course_id, mode_slug=u'verified', mode_display_name=u'Verified Certificate', min_price=10, suggested_prices='10,20').visit()
+
         # Auto-auth register for the course.
         self._auto_auth(self.USERNAME, self.EMAIL, False)
 
@@ -156,32 +162,6 @@ class ProctoringExamTest(UniqueCourseTest):
         self.problem_page = ProblemPage(self.browser)
         self.assertEqual(self.problem_page.problem_name, 'TEST PROBLEM 1')
 
-    def _open_exam_settings_dialog(self):
-        """
-
-        """
-        self.course_outline.q(css=".subsection-header-actions .configure-button").first.click()
-
-    def _assert_proctoring_items_are_displayed(self):
-        """
-        """
-        # The Timed exam checkbox
-        self.assertTrue(self.course_outline.q(css="#id_timed_examination").present)
-
-        # The time limit field
-        self.assertTrue(self.course_outline.q(css="#id_time_limit").present)
-
-        # The Practice exam checkbox
-        self.assertTrue(self.course_outline.q(css="#id_practice_exam").present)
-
-        # The Proctored exam checkbox
-        self.assertTrue(self.course_outline.q(css="#id_exam_proctoring").present)
-
-
-    def _make_exam_proctored_in_studio(self):
-        self.course_outline.q(css="#id_timed_examination").first.click()
-        self.course_outline.q(css=".action-save").first.click()
-
     def _auto_auth(self, username, email, staff):
         """
         Logout and login with given credentials.
@@ -189,33 +169,94 @@ class ProctoringExamTest(UniqueCourseTest):
         AutoAuthPage(self.browser, username=username, email=email,
                      course_id=self.course_id, staff=staff).visit()
 
-    def test_courseware(self):
+    def _login_as_a_verified_user(self):
+        # Create a user and log them in
+
+        self._auto_auth(self.USERNAME, self.EMAIL, False)
+
+        # the track selection page cannot be visited. see the other tests to see if any prereq is there.
+        # Navigate to the track selection page
+        self.track_selection_page.visit()
+
+        # Enter the payment and verification flow by choosing to enroll as verified
+        self.track_selection_page.enroll('verified')
+
+        # Proceed to the fake payment page
+        self.payment_and_verification_flow.proceed_to_payment()
+
+        # Submit payment
+        self.fake_payment_page.submit_payment()
+
+    def test_can_create_proctored_exam_in_studio(self):
         """
-        Test courseware if recent visited subsection become unpublished.
+        Test that Proctored exam settings are visible in Studio.
         """
 
-        # Logout and login as a staff user.
+        # Given that I am a staff member
         LogoutPage(self.browser).visit()
         self._auto_auth("STAFF_TESTER", "staff101@example.com", True)
 
-        # Visit course outline page in studio.
+        # When I visit the course outline page in studio.
         self.course_outline.visit()
 
-        # Open the subsection edit dialog
-        self._open_exam_settings_dialog()
+        # And open the subsection edit dialog
+        self.course_outline.open_exam_settings_dialog()
 
-        # Assert all settings related to Proctored exams are displayed
-        self._assert_proctoring_items_are_displayed()
+        # Then I can view all settings related to Proctored and timed exams
+        self.assertTrue(self.course_outline.proctoring_items_are_displayed())
 
-        # Make the exam proctored.
-        self._make_exam_proctored_in_studio()
+    def test_proctored_exam_flow(self):
+        """
+        Test that staff can create a proctored exam.
+        """
 
-        # Wait for 2 seconds to save new date.
-        time.sleep(2)
-
-        # Logout and login as a student.
+        # Given that I am a staff member on the exam settings section
         LogoutPage(self.browser).visit()
-        self._auto_auth(self.USERNAME, self.EMAIL, False)
+        self._auto_auth("STAFF_TESTER", "staff101@example.com", True)
+        self.course_outline.visit()
+        self.course_outline.open_exam_settings_dialog()
+
+        # When I Make the exam timed.
+        self.course_outline.make_exam_proctored()
+        time.sleep(2)  # Wait for 2 seconds to save the settings.
+
+        # And I login as a verified student.
+        LogoutPage(self.browser).visit()
+        self._login_as_a_verified_user()
+
+        # And visit the courseware as a verified student.
+        self.courseware_page.visit()
+
+        # Then I can see an option to take the exam as a proctored exam.
+        self.assertTrue(self.couseware_page.can_start_proctored_exam)
+
+    def test_timed_exam_flow(self):
+        """
+        Test that staff can create a timed exam.
+        """
+
+        # Given that I am a staff member on the exam settings section
+        LogoutPage(self.browser).visit()
+        self._auto_auth("STAFF_TESTER", "staff101@example.com", True)
+        self.course_outline.visit()
+        self.course_outline.open_exam_settings_dialog()
+
+        # When I Make the exam timed.
+        self.course_outline.make_exam_timed()
+        time.sleep(2)  # Wait for 2 seconds to save the settings.
+
+        # And I login as a verified student.
+        LogoutPage(self.browser).visit()
+        self._login_as_a_verified_user()
+
+        # And visit the courseware as a verified student.
+        self.courseware_page.visit()
+
+        # And I start the timed exam
+        self.courseware_page.start_timed_exam()
+
+        # Then I am taken to the exam with a timer bar showing
+        self.assertTrue(self.couseware_page.is_timer_bar_present)
 
 
 class CoursewareMultipleVerticalsTest(UniqueCourseTest):
