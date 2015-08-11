@@ -284,6 +284,11 @@ class TeamPage(CoursePage, PaginatedUIMixin):
         """Verifies that team leave link is present"""
         return self.q(css='.leave-team-link').present
 
+    def click_leave_team_link(self):
+        """ Click on Leave Team link"""
+        self.q(css='.leave-team-link').first.click()
+        self.wait_for_ajax()
+
     @property
     def team_invite_section_present(self):
         """Verifies that invite section is present"""

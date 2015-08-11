@@ -6,10 +6,11 @@
     define(['backbone', 'underscore', 'gettext', 'teams/js/views/team_discussion',
             'teams/js/views/team_utils',
             'text!teams/templates/team-profile.underscore',
-            'text!teams/templates/team-member.underscore'
-        ],
+            'text!teams/templates/team-member.underscore'],
         function (Backbone, _, gettext, TeamDiscussionView, TeamUtils, teamTemplate, teamMemberTemplate) {
             var TeamProfileView = Backbone.View.extend({
+
+                errorMessage: gettext("An error occurred. Try again."),
 
                 events: {
                     'click .invite-link-input': 'selectText',
@@ -69,51 +70,29 @@
                     $(event.currentTarget).select();
                 },
 
-                // this will be updated with studio confirmation dialog once available
-                confirmThenRunOperation: function (title, message, actionLabel, operation, onCancelCallback) {
-                    $("#page-prompt").html(message);
-                    $("#page-prompt").dialog({
-                        title: title,
-                        resizable: false,
-                        modal: true,
-                        open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
-                        buttons: [
-                            {
-                                text: actionLabel,
-                                click: function () {
-                                    $(this).dialog("close");
-                                    operation();
-                                }
-                            },
-                            {
-                                text: 'Cancel',
-                                click: function () {
-                                    $(this).dialog("close");
-                                }
-                            }
-                        ]
-                    });
-                },
-
                 leaveTeam: function (event) {
                     event.preventDefault();
                     var view = this;
-                    this.confirmThenRunOperation(
-                        gettext('Leave this team?'),
-                        gettext('Leaving a team means you can no longer post on this team, and your spot is opened for another learner.'),
-                        gettext('Leave'),
-                        function() {
-                            $.ajax({
-                               type: 'DELETE',
-                               url: view.teamsMembershipDetailUrl.replace('team_id', view.model.get('id'))
-                            }).done(function (data) {
-                               view.model.fetch({});
-                            }).fail(function (data) {
-                               alert(data);
-                            });
-                        }
-                    );
-                }
+                    $.ajax({
+                       type: 'DELETE',
+                       url: view.teamsMembershipDetailUrl.replace('team_id', view.model.get('id'))
+                    }).done(function (data) {
+                       view.model.fetch({});
+                    }).fail(function (data) {
+                       try {
+                           var errors = JSON.parse(data.responseText);
+                           view.showMessage(errors.user_message);
+                       } catch (error) {
+                           view.showMessage(view.errorMessage);
+                       }
+                    });
+                },
+
+                showMessage: function (message) {
+                   $('.wrapper-msg').removeClass('is-hidden');
+                   $('.msg-content .copy').text(message);
+                   $('.wrapper-msg').focus();
+               }
             });
 
             return TeamProfileView;

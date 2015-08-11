@@ -1053,3 +1053,25 @@ class TeamPageTest(TeamsTabBase):
         self.team_page.visit()
         self.assertEqual(self.team_page.join_team_message, 'This team is full.')
         self.assert_team_details(num_members=1, is_member=False, max_size=1)
+
+    def test_leave_team(self):
+        """
+        Scenario: User can leave a team.
+
+        Given I am enrolled in a course with a team configuration, a topic,
+            and a team belonging to that topic
+        And I am a member of team
+        And I visit the team
+        And I should not see Join Team button
+        Then I should see Leave Team link
+        When I click on Leave Team link
+        Then user should be left from team
+        And I should see Join Team button
+        """
+        self._set_team_configuration_and_membership()
+        self.team_page.visit()
+        self.assertFalse(self.team_page.join_team_button_present)
+        self.assert_team_details(num_members=1, invite_text='Send this link to friends so that they can join too.')
+        self.team_page.click_leave_team_link()
+        self.assert_team_details(num_members=0, is_member=False)
+        self.assertTrue(self.team_page.join_team_button_present)
