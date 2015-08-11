@@ -86,7 +86,6 @@ def enable_stanford_theme():
     # avoid collisions with default edX static files
     settings.STATICFILES_DIRS.append(
         (u'themes/{}'.format(settings.THEME_NAME), theme_root / 'static')
-        #theme_root / 'static',
     )
 
     # Include theme locale path for django translations lookup
