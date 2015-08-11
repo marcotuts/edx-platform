@@ -110,7 +110,7 @@ class TeamAPITestCase(APITestCase, SharedModuleStoreTestCase):
     @classmethod
     def setUpClass(cls):
         super(TeamAPITestCase, cls).setUpClass()
-        teams_configuration = {
+        teams_configuration_1 = {
             'topics':
             [
                 {
@@ -124,9 +124,30 @@ class TeamAPITestCase(APITestCase, SharedModuleStoreTestCase):
             org='TestX',
             course='TS101',
             display_name='Test Course',
-            teams_configuration=teams_configuration
+            teams_configuration=teams_configuration_1
         )
-        cls.test_course_2 = CourseFactory.create(org='MIT', course='6.002x', display_name='Circuits')
+
+        teams_configuration_2 = {
+            'topics':
+            [
+                {
+                    'id': 'topic_5',
+                    'name': 'Other Interests',
+                    'description': 'Description for topic 5.'
+                },
+                {
+                    'id': 'topic_6',
+                    'name': 'Public Profiles',
+                    'description': 'Description for topic 6.'
+                },
+            ]
+        }
+        cls.test_course_2 = CourseFactory.create(
+            org='MIT',
+            course='6.002x',
+            display_name='Circuits',
+            teams_configuration=teams_configuration_2
+        )
 
     def setUp(self):
         super(TeamAPITestCase, self).setUp()
