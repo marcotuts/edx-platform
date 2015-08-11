@@ -82,7 +82,11 @@ class TestAccountApi(UserSettingsEventTestMixin, TestCase):
         account_settings = get_account_settings(self.default_request, self.different_user.username)
         self.assertFalse("email" in account_settings)
 
-        account_settings = get_account_settings(self.default_request, self.different_user.username, configuration=config)
+        account_settings = get_account_settings(
+            self.default_request,
+            self.different_user.username,
+            configuration=config
+        )
         self.assertEqual(self.different_user.email, account_settings["email"])
 
     def test_get_user_not_found(self):
@@ -317,6 +321,7 @@ class AccountCreationActivationAndPasswordChangeTest(TestCase):
         u'a' * (PASSWORD_MAX_LENGTH + 1)
     ]
 
+    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_activate_account(self):
         # Create the account, which is initially inactive
         activation_key = create_account(self.USERNAME, self.PASSWORD, self.EMAIL)

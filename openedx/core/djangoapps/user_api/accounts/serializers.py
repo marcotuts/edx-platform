@@ -70,7 +70,7 @@ class UserProfileReadOnlySerializer(serializers.Serializer):
             "date_joined": user.date_joined,
             "is_active": user.is_active,
             "bio": profile.bio,
-            "country": profile.country.code,
+            "country": AccountLegacyProfileSerializer.convert_empty_to_None(profile.country.code),
             "profile_image": self._get_profile_image(profile, user),
             "time_zone": None,
             "language_proficiencies": LanguageProficiencySerializer(
@@ -78,10 +78,10 @@ class UserProfileReadOnlySerializer(serializers.Serializer):
                 many=True
             ).data,
             "name": profile.name,
-            "gender": profile.gender,
+            "gender": AccountLegacyProfileSerializer.convert_empty_to_None(profile.gender),
             "goals": profile.goals,
             "year_of_birth": profile.year_of_birth,
-            "level_of_education": profile.level_of_education,
+            "level_of_education": AccountLegacyProfileSerializer.convert_empty_to_None(profile.level_of_education),
             "mailing_address": profile.mailing_address,
             "requires_parental_consent": profile.requires_parental_consent(),
         }
