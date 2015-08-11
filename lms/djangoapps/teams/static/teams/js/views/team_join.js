@@ -4,8 +4,9 @@
 define(['backbone',
         'underscore',
         'gettext',
+        'teams/js/views/team_utils',
         'text!teams/templates/team-join.underscore'],
-       function (Backbone, _, gettext, team_join_template) {
+       function (Backbone, _, gettext, TeamUtils, teamJoinTemplate) {
            return Backbone.View.extend({
 
                errorMessage: gettext("An error occurred. Try again."),
@@ -17,7 +18,7 @@ define(['backbone',
                },
 
                initialize: function(options) {
-                   this.template = _.template(team_join_template);
+                   this.template = _.template(teamJoinTemplate);
                    this.maxTeamSize = options.maxTeamSize;
                    this.currentUsername = options.currentUsername;
                    this.teamMembershipsUrl = options.teamMembershipsUrl;
@@ -79,11 +80,7 @@ define(['backbone',
                        teamHasSpace: false
                    };
 
-                   info.memberOfCurrentTeam = _.isObject(
-                       _.find(
-                           this.model.get('membership'), function(member) {return member.user.username === username;}
-                       )
-                   );
+                   info.memberOfCurrentTeam = TeamUtils.isUserMemberOfTeam(this.model.get('membership'), username);
                    var teamHasSpace = this.model.get('membership').length < maxTeamSize;
 
                    if (info.memberOfCurrentTeam) {
